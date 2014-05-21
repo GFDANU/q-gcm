@@ -1,0 +1,171 @@
+
+
+Test all the test programs, as these are the most likely to go wrong.
+
+
+Don't see the point of wesoav and wenoav in the time averaging.
+Should figure out what they were intended for, and implement it.
+timavat.cmn, timavoc.cmn and tavsubs.F are now incorporated in
+timavge.F; should be able to do similar for the covariance stuff.
+This is a definite advantage of the module approach.
+
+
+need to add the qocdiag memory useage to the stats at the start of q-gcm.
+
+
+Should put in a check for nca and (mainly) nco becoming so large as
+to exceed a valid integer*4 array (perhaps by testing the square root
+of the value to avoid problems) and perhaps terminate the program.
+Also seek Andy's agreement to chance the names nca and nco to e.g.
+ncvat and ncvoc, as these are harder to misread.
+
+The averaging interval (areasubs) is controlled by dgnday, not as
+was said in the original comments. Need to check the documentation.
+
+May be able to remove ${QGOPTS} from build of intrfac.mod; tbd.
+Alternatively, may want to introduce some preprocessing to
+avoid declaration of some variables that are not needed.
+
+intrfac.cmn may be missing from some of the dependency lists
+in earlier versions of the program; check whilst tidying v1.4.1
+(The dependency lists in v1.5.0dev have been fully checked)
+
+xfotest.F fails to link MKL properly, but is OK with source code LAPACK.
+This is when testing in the -mcmodel=medium case; may be OK normally.
+However must fix this sometime. Seems inconsistent with all the
+other test program build; why? Now also true of radtest.f .
+Can be "fixed" by adding -openmp to TPFLAGS, so the problem is
+that LAPACK is not appropriate to a single-thread build. The
+Makefile suggests that there used to be one (or at least an
+intention to provide one), this is now necessary.
+
+Also, must retest everything with the GCC compiler suite.
+
+Be more rigorous about making stuff in modules private where possible
+(as default), and making more use of ONLY on USE statements.
+When writing the ONLY list, give in order of use (easiest to check,
+and follows pattern of local storage), rather than order of declaration
+in the module being used. Also, have spaces in the list.
+
+Have I overcooked the default SAVE statements; may only be wanted for
+data modules. May affect ability to use stack variables within routines.
+Now believed fixed.
+
+Will need to do lots of tests of atmos_only, ocean_only and
+box/cyclic builds to verify all this stuff.
+
+Struggled to turn q-gcm.F itself into a module, and this was
+probably a logical error, so leave it just as a program.
+
+Unlike the other *test programs, toptest.F doesn't use in_param.f,
+but has lots of parameters hard-wired in. This looks like a mistake
+which should be rectified as otherwise it will cause confusion.
+Why was it ever done?
+
+
+Restart investigations with Chris Wilson 18/02/2013:
+----------------------------------------------------
+Seems to be an error for a CONTAINS statement in a module
+to not then contain any subroutines or functions (at least
+according to the gfortran compiler), so need to move the
+CONTAINS statements within the scope of #ifndef blocks.
+Have done this for the #ifndef blocks in amlsubs.F, qgasubs.F,
+atisubs.F and vorsubs.F to get Chris's -Docean_only setup working.
+Have now done the equivalent for -Datmos_only on omlsubs.F,
+qgosubs.F and ocisubs.F .
+
+There are several unused variables in conhoms.F that might
+be removed with #ifndef's; check this. Only seems to apply
+to the ocean_only box ocean case; the only case with no
+cyclic domains.
+
+Building with v4.5.3 gcc instead of v4.3.1 gcc produces lots of
+warnings of the form:
+netcdf.inc:190.18:
+    Included at nc_subs.F:67:
+
+      character*80   nf_inq_libvers
+
+Can't really fix these as they are in netcdf.inc!!
+Only solution might be to move to the netCDF4 libraries
+(which might be a good idea anyway to test the GCC build)
+Actuallt they are still there in netCDF4; just ignore!
+
+Other obsolescence warnings are in the LASUBS/BLAS source code;
+only alternatives would be to see if a newer version of the
+source code fixes the problem (but version is believed to be
+fairly recent), or to get them via a pre-built library.
+At NOC-S this might be GSL; not sure about NOC-L.
+
+Work out how to tell if the user is invoking netCDF3 or netCDF4;
+the latter should eliminate most file size restrictions (I think!).
+
+Will need to revise memory usage statistics for new monitor_diag.F,
+and indeed everything else since small_local has been eliminated.
+
+May be some scope for eliminating arrays in intrfac_data.F with
+#if(n)def statements; need to find a clean test
+
+Also need to check if atstate & ocstate can have ifdefs to remove
+their storage, as implied by the ifdefs in memreq.
+Not in the case of atstate_data.F, and all the problems come from
+xfosubs.F, which is in need of a rewrite.
+Has been done for ocstate_data.F, apparently successfully, and
+that defines more data anyway.
+
+
+Keep updating WhatsNew.txt
+
+
+Recheck precision used in output netCDF dumps; which 3 did
+we agree would be the only candidates for double precision?
+Convert all output to single precision, except for
+lastday.nc/restart.nc, avges.nc and topog.nc.
+Consistency between fields and coordinates?
+Have I unwittingly reverted to the old version of nc_subs.F?
+I think the calls to nf_put_vara_double are OK; we are
+putting a double precision (in the program) variable into
+single precision (float) netCDF variable. All looks OK.
+
+
+Consider task level parallelisation of creating netCDF files
+at the start of the run.
+
+
+After discussion with Andy Hogg about the results from the run
+with ah4oc = 5.0d+8 and bcoooc = 0.75, agreed that it would be
+useful to do another run with ah4oc = 1.0d9 and bccooc = 0.50d0,
+leaving st2d = 100.0d0 and st4d = 1.0d+9, since most of the
+very fine structure in the SST field will be driven by qo(1).
+Also agreed on more stringent criteria for oceanic layer
+thickness in valsubs.F (thkmin = 50.0d0 instead of 40.0d0,
+and critpc = 25.0d0 instead of 30.0d0). Note that the previous
+values in the NAtl case were both already more rigorous than
+were used for the Southern Ocean case.
+
+
+ANU's new HPC system:
+---------------------
+Raijin
+Fujitsu PRIMERGY CX250 S1, Xeon E5-2670 8C 2.600GHz, Infiniband FDR
+Manufacturer:   Fujitsu
+Cores:          53,504
+Linpack Performance (Rmax)    978.6 TFlop/s
+Theoretical Peak (Rpeak)    1,112.9 TFlop/s
+Power:
+Memory:         214,016 GB
+Interconnect:   Infiniband FDR (Mellanox)
+Operating System:       Linux
+Compiler:       Intel C & Fortran 64 Compiler XE 2012
+Math Library:   Fujitsu Tuned DGEMM
+MPI:            Intel MPI Library 4.0
+http://www.nci.org.au/
+webpage claims 57,472 cores
+
+From the userguide:
+Current recommendations are to use the option -xHost for maximum performance
+on the Intel processors. Version 12.1.9.293 has been set as the default
+as there have been some problems reported with the version 13 compilers.
+Type module avail intel-fc to see what versions are currently installed.
+
+

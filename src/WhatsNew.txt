@@ -1,0 +1,138 @@
+
+Changes in Q-GCM v1.5.0 w.r.t. v1.4.0:
+======================================
+(since I think we agreed that we wouldn't bother releasing "v1.4.1"
+ which Chris W. has been using for his Southern Ocean work).
+
+The principal change is the move to structuring almost all of the
+code as modules, in line with best practice for scientific software
+in Fortran 90. This has the effect of making Q-GCM v1.5.0 definitely
+a Fortran 90 code, rather than Fortran 77 as previously.
+In particular most of the common blocks *.cmn in v1.4.0 have been
+replaced by data modules *_data.F (except for a few small ones that
+have been incorporated into program modules). This has the advantage
+that arrays which are unnecessary in a particular configuration can
+be removed by the preprocessor.
+Everything has been put into modular form except q-gcm.F, the file
+containing the main program and some straightforward subroutines.
+This is an unfinished task which may be done in v1.5.1 .
+An extra module timinfo_data.F has been introduced to make time
+intervals and timestep information available to any subprogram,
+via USE timinfo.
+The former included code fragment parameter.src has been replaced
+by a module called parameters_data.F .
+
+
+Some coding style improvements have been generally made. Most of the
+previous INCLUDE statements, notably those for common blocks, have
+been replaced by USE statements to access modules, with increasingly
+rigorous use of the
+USE module, ONLY :
+option when accessing data modules to define exactly which variables
+in the module are needed. Some keywords such as subroutine declarations
+are now in capitals, and are matched with a corresponding
+END SUBROUTINE [name] statement.
+INTENT(IN) and INTENT(OUT) are being increasingly used to define
+subroutine arguments.
+Many preprocessor #endif statements are now tagged with a comment
+indicating which option the are terminating, thus:
+#ifndef ocean_only
+#endif /* not ocean_only */
+The syntax for specifying lengths of character strings has been
+changed to conform to Fortran 90 style.
+Where possible comments have been extended and improved.
+
+
+The Makefile has been tidied, restructured and all dependencies
+have been rechecked. The Makefile itself now contains only the
+dependencies and compile/link instructions; information about the
+model configuration as defined by preprocessor options is included
+via a file called make.config (which can be a link to one of several
+specific configuration options), and machine & compiler specific
+information (such as compiler name, location of libraries, debug
+or optimisation options) is included via a file called make.macro
+(again, usually a link to one of a set of such files).
+
+
+The small_local preprocessor option has been removed, as it
+has not been found necessary on recent unix/linux systems.
+
+
+A new module qocdiag.F has been written to diagnose the instantaneous
+rate of change of potential vorticity (the evolution equation which
+drives the model) in each layer, and each of the terms that
+contributes to the RHS of the evolution equation. Addition of
+this module (and the fact that it was written in module form)
+was the main change in v1.4.1, not generally published.
+It is hoped to provide a time-averaged variant of this module
+in v1.5.1.
+
+
+Changes to specific program files:
+----------------------------------
+In general, program modules computing only diagnostic quantities,
+and which thus might in principle be removed without affecting
+the running of the model, are being renamed as *_diag.F
+
+amlsubs.F contains a bugfix in subroutine amladf, affecting
+(only) the N.E. corner point of the atmospheric domain.
+Thanks to Tim Leslie for spotting this.
+
+areasubs.F has been renamed as areasubs_diag.F, and a couple
+of the long names in netCDF output have been made clearer.
+
+covsubs.F has been renamed as covaria_diag.F
+Parameters used for covariance arrays (and set in parameters_data.F)
+have been renamed to make them more distinctive:
+changed nsa, nso to nscvat, nscvoc
+changed nva, nvo to nvcvat, nvcvoc
+changed nca, nco to nmcvat, nmcvoc
+
+diasubs.F has been renamed as monitor_diag.F; extra integrals
+are computed so that the energy budget can be closed correctly,
+and the code has been extensively tidied.
+
+q-gcm.F has more complete testing of velocity fields in
+subroutine cfltry (now includes atmos. mixed layer velocities)
+
+qgosubs.F has had the argument list to subroutine ocadif
+simplified in the box ocean case, where fewer quantities
+for determining constraints need to be computed.
+
+radsubs.f prints out results (mainly various derived radiation
+coefficients) to more significant figures (as a check when porting
+the code between different systems), and now uses Kahan summation to
+compute vertical integrals for the radiation scheme more accurately.
+The parallelism previously included has been removed, as being hard
+to integrate with the Kahan summation, and of negligible benefit to
+overall performance.
+
+xfosubs.F has been recoded to use internal module variables rather
+than a common block for internal communication. In addition several
+sections of the code have been reorganised to improve computational
+efficiency. This code however remains unacceptably expensive, and
+in need of further rewriting to improve performance. (v1.5.1?)
+
+tavsubs.F has been renamed as timavge.F, and the code has been tidied.
+
+valsubs.F has been extended to check the validity of ocean layer
+thicknesses, as well as having many detailed code improvements.
+
+
+
+Later, minor changes:
+---------------------
+Variables nouto, nouta renamed noutoc, noutat for clarity
+  changes in q-gcm.F, outparam.f, nc_subs.F and qocdiag.F
+Time interval of printout to std. output (via calls to prsamp)
+  changed from the diagnostic interval dgnday to a new (extra)
+  interval prtday, necessitating changes to input.params and
+  in_param.f, and q-gcm.F
+Variables ekeioc, ekeiat renames kealoc, kealat respectively
+  (less misleading; these are average layer KE values, NOT
+   eddy kinetic energies as might have been inferred)
+   also changes monitor_data.cmn
+sstmin, sstmax are now computed and output as part of the monitoring
+   diagnostics (changes in monitor_data.cmn and monitor_diag.F)
+Tidy some redundant variables out of timavge.F
+

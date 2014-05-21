@@ -1,0 +1,655 @@
+
+The Q-GCM model consists of a Main program + 71 subprograms,
+ 8 of which remain with the main program in the file q-gcm.F,
+63 having been separated out into other *.f and *.F files.
+
+With all subroutines explicitly included as in
+original code (i.e. INCLUDE statements only used for
+parameter.src, common blocks and numerical routines)
+ Total length of program = 18205 lines
+ preprocessor directives =   935 lines
+                           17270 lines
+   OpenMP API directives =  1017 lines
+                           16253 lines
+ Comments + blank lines  =  5572 lines
+ Actual source code      = 10681 lines
+ [includes INCLUDE lines to pick up LAPACK & BLAS routines explicitly]
+
+Common blocks:
+ Total length of files   =   770 lines
+ Comments + blank lines  =   551 lines
+ Actual source code      =   219 lines
+
+In addition there are Fourier transform library routines
+from FFTPACK and linear algebra routines from LAPACK/BLAS.
+
+
+Memory size (approx) for finite box case (single processor):
+------------------------------------------------------------
+
+less covariance =  105.69 MB (Sun, static)
+                    61.16 MB (Sun, stackvar)
+                   107.21 MB (jagungal, ifc, static)
+                   109.47 MB (taurus, static)
+                    65.04 MB (taurus, stack)
+Ratio static/stack ~ 1.73; stack saves about 44.5 MB
+
+with covariance =  337.92 MB (Sun, static)
+                   293.33 MB (Sun, stackvar)
+                   339.44 MB (jagungal, ifc, static)
+                   341.72 MB (taurus, static)
+                   297.25 MB (taurus, stack)
+Ratio static/stack ~ 1.15; stack saves about 44.5 MB
+
+
+Memory size (approx) for Andy's cyclic case (single processor):
+---------------------------------------------------------------
+This has nxta=192, nyta=60, nla=3, nyaooc=25, ndxr=8, nlo=3, nsa=2, nso=8
+
+less covariance =  179.68 MB (Sun, v8.0a, static)
+                   103.37 MB (Sun, v8.0a, stackvar)
+                   184.62 MB (bull, v8.1, static)
+                   108.50 MB (bull, v8.1, -auto)
+Ratio static/stack ~ 1.74; stack saves about 76.3 MB
+
+with covariance =  418.98 MB (Sun, v8.0a, static)
+                   342.62 MB (Sun, v8.0a, stackvar)
+                   423.95 MB (bull, v8.1, static)
+                   347.77 MB (bull, v8.1, -auto)
+Ratio static/stack ~ 1.22; stack saves about 76.3 MB
+
+
+Memory size (approx) for ambitious Southern Ocean case (single processor):
+--------------------------------------------------------------------------
+This is the 10km resolution version, with the narrower (26 deg) domain,
+and has nxta=288, nyta=72, nla=3, nyaooc=36, ndxr=8, nlo=3, nsa=2, nso=8
+
+less covariance =   384.31 MB (Sun, v10.0, static)
+                    221.11 MB (Sun, v10.0, stackvar)
+                    387.66 MB (bull, v8.1, static)
+                    224.63 MB (bull, v8.1, -auto)
+Ratio static/stack ~ 1.73; stack saves about 163.1 MB
+
+with covariance =  1409.96 MB (Sun, v10.0, static)
+                   1246.64 MB (Sun, v10.0, stackvar)
+                   1413.30 MB (bull, v8.1, static)
+                   1250.15 MB (bull, v8.1, -auto)
+Ratio static/stack ~ 1.13; stack saves about 163.2 MB
+[N.B. Bull versions without static libraries, so underestimates]
+
+
+Groupings of subroutines in *.f and *.F files:
+----------------------------------------------
+q-gcm.F     contains ipbget, zeroin(P), rbalin(P), prsamp(P),
+                     cfltry(P), resave, memreq, diffts          (8)
+amlsubs.F   contains aml(P), amladf(P)                          (2) M
+areasubs.F  contains areavg, areint(P)                          (2) M
+atisubs.F   contains atinvq(P), hscyat(P)                       (2) M
+conhoms.F   contains constr(P), homsol(P)                       (2) M
+covaria.F   contains covini(P), covatm, covocn, covout,         (7) M
+                     tsampl(P), psampl(P), dssp(P)
+diasubs.F   contains diagno(P), del4bx(P), del4ch(P),           (6) M
+                     genint(P), monnc_init, monnc_out
+intsubs.f   contains xintt(P), xintp(P)                         (2) M
+nc_subs.F   contains handle_err, ocnc_init, atnc_init,          (7) M
+                     ocnc_out(P), atnc_out(P),
+                     resave_nc, restart_nc
+ocisubs.F   contains ocinvq(P), hsbxoc(P), hscyoc(P)            (3) M
+omlsubs.F   contains oml(P), omladf(P)                          (2) M
+qgasubs.F   contains qgastep(P), atadif(P)                      (2) M
+qgosubs.F   contains qgostep(P), ocadif(P)                      (2) M
+qocdiag.F   contains qocdiag_init, qocdiag_out(P)               (2) M
+radsubs.f   contains radiat(P), trapin                          (2) M
+timavge.F   contains tavini(P), tavatm(P), tavocn(P), tavout    (4) M
+topsubs.F   contains topset, topout_nc                          (2) M
+valsubs.F   contains valids(P), scan2D, scan3D                  (3) M
+vorsubs.F   contains qcomp(P), merqcy(P), ocqbdy(P), atqzbd(P)  (4) M
+xfosubs.F   contains xforc(P), function fsprim, bilint(P),
+                     auvbcu(P), bcuini, wts2bb                  (6) M
+eigmode.f   is a single routine file                            (1)
+                                                                    (71)
+P denotes the routines (45) that have been parallelised (using OpenMP)
+M denotes program files rewritten in the new module style
+There are also sections of code to INCLUDE in in_param.f, out_param.f
+
+
+List of data storage modules (11), with purpose:
+------------------------------------------------
+atconst_data.F    : Time independent atmospheric parameters
+athomog_data.F    : Homogeneous atmos. solutions & their coeffts.
+atstate_data.F    : Time varying atmospheric state
+                    (pressure, vorticity, entrainment & wekman)
+intrfac_data.F    : All mixed layer parameters and variables, for both
+                    atmosphere and ocean, including dynamic stresses
+monitor_data.F    : Diagnostic quantities for monitoring model
+occonst_data.F    : Time independent oceanic parameters
+ochomog_data.F    : Homogeneous oceanic solutions & their coeffts.
+ocstate_data.F    : Time varying oceanic state
+                    (pressure, vorticity, entrainment & wekman)
+parameters_data.F : Dimensioning and latitude information
+radiate_data.F    : Radiation parameters needed by subroutines
+timinfo_data.F    : Variables and counters controlling
+                    timesteps and monitoring
+
+
+Which subroutine solves which equations:
+----------------------------------------
+xforc                   solves  7.1-7.10
+oml     (+omladf)       solves 7.11-7.13
+qgostep (+ocadif)       solves 7.14
+ocinvq  (+hsbxoc/cyoc)  solves 7.15
+aml     (+amladf)       solves 7.16-7.19
+qgastep (+atadif)       solves 7.14
+atinvq  (+hscyat)       solves 7.15
+
+
+Calling tree (generated by ftnchek): (finite box case)
+------------------------------------
+Tree of subprogram calls:
+%MAIN
+    AML
+        AMLADF
+        XINTP
+    AREAVG
+        AREINT
+        HANDLE_ERR
+        NF_DEF_DIM
+        NF_DEF_VAR
+        NF_ENDDEF
+        NF_PUT_ATT_TEXT
+        NF_PUT_VARA_DOUBLE
+        NF_PUT_VAR_INT
+    ATINVQ
+        HSCYAT
+            DRFFTB
+                DRFTB1
+                    DRADB2
+                    DRADB3
+                    DRADB4
+                    DRADB5
+                    DRADBG
+            DRFFTF
+                DRFTF1
+                    DRADF2
+                    DRADF3
+                    DRADF4
+                    DRADF5
+                    DRADFG
+        XINTP
+    ATNC_INIT
+    ATNC_OUT
+    ATQZBD
+    CFLTRY
+    CONSTR
+        XINTP
+    COVATM
+        DSSP
+        PSAMPL
+        TSAMPL
+    COVINI
+    COVOCN
+        DSSP
+        PSAMPL
+        TSAMPL
+    COVOUT
+        HANDLE_ERR
+        NF_DEF_DIM
+        NF_DEF_VAR
+        NF_ENDDEF
+        NF_PUT_VARA_DOUBLE
+    DIAGNO
+        DEL4BX
+        DEL4CH
+        GENINT
+    DIFFTS
+    DRFFTI
+        DRFTI1
+    DSINTI
+        DRFFTI (see above)
+    EIGMOD
+        DGEBAK
+        DGEBAL
+        DGEHRD
+        DHSEQR
+        DORGHR
+        DTREVC
+    HANDLE_ERR
+    HOMSOL
+        DGETRF
+        HSBXOC
+            DSINT
+                DRFFTF (see above)
+        HSCYAT (see above)
+        XINTP
+    IPBGET
+    MEMREQ
+    MERQCY
+    MONNC_INIT
+    MONNC_OUT
+    NF_CLOSE
+    NF_CREATE
+    NF_OPEN
+    OCINVQ
+        DGERFS
+        DGETRS
+        HSBXOC (see above)
+        XINTP
+    OCNC_INIT
+    OCNC_OUT
+    OCQBDY
+    OML
+        OMLADF
+        XINTP
+    PRSAMP
+    QCOMP
+    QGASTEP
+        ATADIF
+    QGOSTEP
+        OCADIF
+    RADIAT
+        DGERFS
+        DGETRF
+        DGETRS
+        FSPRIM
+        TRAPIN
+    RBALIN
+        FSPRIM
+    RESAVE_NC
+    RESTART_NC
+    TAVATM
+    TAVINI
+    TAVOCN
+    TAVOUT
+        HANDLE_ERR
+        NF_DEF_DIM
+        NF_DEF_VAR
+        NF_ENDDEF
+        NF_PUT_ATT_TEXT
+        NF_PUT_VARA_DOUBLE
+        NF_PUT_VAR_DOUBLE
+    TOPSET
+        HANDLE_ERR
+        NF_CLOSE
+        NF_CREATE
+        NF_GET_VAR_DOUBLE
+        NF_INQ_VARID
+        NF_OPEN
+        TOPOUT_NC
+            HANDLE_ERR
+            NF_DEF_DIM
+            NF_DEF_VAR
+            NF_ENDDEF
+            NF_PUT_ATT_TEXT
+            NF_PUT_VARA_DOUBLE
+        XINTP
+    VALIDS
+    XFORC
+        BILINT
+        FSPRIM
+    ZEROIN
+
+
+MAIN program calls:
+-------------------
+memreq |
+ipbget |
+eigmod  -> dgebal L, dgehrd L, dorghr L, dhseqr L, dtrevc L, dgebak L
+diffts |
+topset  -> topout_nc, xintp
+radiat  -> trapin |, dgetrf L, dgetrs L, dgerfs L
+zeroin |
+rbalin  -> fsprim
+handle_err
+restart_nc
+constr  -> xintp
+qcomp |
+ocqbdy |
+atqzbd |
+merqcy |
+xforc   -> bilint, fsprim
+drffti  F
+dsinti  F
+homsol  -> hsbxoc, hscyoc, xintp, dgetrf L, hscyat
+diagno  -> genint, del4bx, del4ch
+ocnc_init
+ocnc_out
+atnc_init
+atnc_out
+monnc_init
+monnc_out
+prsamp |
+cfltry |
+areavg  -> areint
+tavini |
+covini |
+oml     -> omladf
+qgostep -> ocadif
+ocinvq  -> hsbxoc, xintp, dgetrs L, dgerfs L
+aml     -> amladf
+qgastep -> atadif
+atinvq  -> hscyat
+valids  -> scan2D, scan3D
+resave_nc
+resave |
+tavatm |
+tavocn |
+covatm  -> psampl, dssp, tsampl
+covocn  -> psampl, dssp, tsampl
+tavout |
+covout |
+
+F denotes FFTPACK routine
+L denotes LAPACK routine
+
+
+Self-contained routines (36), and their caller(s):
+--------------------------------------------------
+amladf     aml
+areint     areavg
+atadif     qgastep
+atqzbd     MAIN
+bilint     xforc
+cfltry     MAIN
+covini     MAIN
+covout     MAIN
+del4bx     diagno
+del4ch     diagno
+diffts     MAIN
+dssp       covocn, covatm
+fsprim     MAIN, xforc, rbalin         (function)
+genint     diagno
+handle_err
+ipbget     MAIN (in_param.f)
+memreq     MAIN
+merqcy     MAIN
+ocadif     qgostep
+ocqbdy     MAIN
+omladf     oml
+prsamp     MAIN
+psampl     covatm, covocn
+qcomp      MAIN
+resave     MAIN
+scan2D     valids
+scan3D     valids
+tavatm     MAIN
+tavini     MAIN
+tavocn     MAIN
+tavout     MAIN
+trapin     radiat
+tsampl     covatm, covocn
+xintt
+xintp      constr, aml, oml, ocinvq, atinvq, topset
+zeroin     MAIN
+
+
+Non self-contained routines (30), and their caller(s):
+------------------------------------------------------
+aml        MAIN
+areavg     MAIN
+atinvq     MAIN
+atnc_init  MAIN
+atnc_out   MAIN
+constr     MAIN
+covatm     MAIN
+covocn     MAIN
+diagno     MAIN
+eigmod     MAIN
+homsol     MAIN
+hsbxoc     homsol, ocinvq
+hscyat     homsol, atinvq
+hscyoc     homsol, ocinvq
+monnc_init MAIN
+monnc_out  MAIN
+ocinvq     MAIN
+ocnc_init  MAIN
+ocnc_out   MAIN
+oml        MAIN
+qgastep    MAIN
+qgostep    MAIN
+radiat     MAIN
+rbalin     MAIN
+resave_nc  MAIN
+restart_nc MAIN
+topout_nc  topset
+topset     MAIN
+valids     MAIN
+xforc      MAIN
+
+
+Routines called by those not self-contained:
+--------------------------------------------
+aml        -> amladf |, xintp |
+areavg     -> areint |
+atinvq     -> hscyat, xintp|
+atnc_init  -> handle_err |
+atnc_out   -> handle_err |
+constr     -> xintp |
+covatm     -> psampl |, dssp |, tsampl |
+covocn     -> psampl |, dssp |, tsampl |
+diagno     -> genint |, del4bx |, del4ch |
+eigmod     -> dgebal L, dgehrd L, dorghr L, dhseqr L, dtrevc L, dgebak L
+homsol     -> hsbxoc, hscyoc, xintp |, dgetrf L, hscyat
+hsbxoc     -> dsint F                                      (FFTPACK)
+hscyat     -> drfftf F, drfftb F                           (FFTPACK)
+hscyoc     -> drfftf F, drfftb F                           (FFTPACK)
+monnc_init -> handle_err |
+monnc_out  -> handle_err |
+ocinvq     -> hsbxoc, hscyoc, xintp |, dgetrs L, dgerfs L  (LAPACK)
+ocnc_init  -> handle_err |
+ocnc_out   -> handle_err |
+oml        -> omladf |, xintp |
+qgastep    -> atadif |
+qgostep    -> ocadif |
+radiat     -> trapin |, dgetrf L, dgetrs L, dgerfs L       (LAPACK)
+rbalin     -> fsprim |
+resave_nc  -> handle_err |
+restart_nc -> handle_err |
+topout_nc  -> topout_nc
+topset     -> handle_err |, xintp |, topout_nc
+valids     -> scan2D, scan3D
+xforc      -> fsprim |, bilint |
+
+
+FFTPACK routines:
+-----------------
+drffti -> drfti1 |
+drfftf -> drftf1 -> dradf4 |, dradf2 |, dradf3 |, dradf5 |, dradfg |
+drfftb -> drftb1 -> dradb4 |, dradb2 |, dradb3 |, dradb5 |, dradbg |
+
+dsinti -> drffti -> drfti1 |
+dsint  -> drfftf -> drftf1 -> ... as above
+
+
+LAPACK routines:
+----------------
+(f) denotes a function rather than a subroutine
+eigmod:
+DGEBAL -> LSAME(f), XERBLA, DSWAP, DLAMCH(f), IDAMAX(f), DSCAL
+DGEHRD -> ILAENV(f), XERBLA, DLAHRD, DGEMM, DLARFB, DGEHD2
+DORGHR -> ILAENV(f), XERBLA, DORGQR
+DHSEQR -> LSAME(f), XERBLA, DLASET, ILAENV(f), DLAHQR, DLAMCH(f), DLABAD,
+          DLANHS(f), DLACPY, DCOPY, DGEMV, IDAMAX(f), DSCAL, DLAPY2(f),
+          DLARFG, DLARFX
+DTREVC -> LSAME(f), XERBLA, DLAMCH(f), DLABAD, DLALN2, DSCAL, DAXPY, DCOPY,
+          IDAMAX(f), DGEMV, DDOT(f)
+DGEBAK -> LSAME(f), XERBLA, DSCAL, DSWAP
+
+Main/ocinvq:
+DGETRF -> XERBLA, ILAENV(f), DGETF2, DLASWP, DTRSM, DGEMM
+DGETRS -> XERBLA, DLASWP, DTRSM
+DGERFS -> LSAME(f), XERBLA, DLAMCH(f), DCOPY, DGEMV, DGETRS, DAXPY, DLACON
+
+
+Dependencies: use of modules
+----------------------------
+   q-gcm.F:
+      MAIN: parameters.mod atconst.mod occonst.mod atstate.cmn
+            ocstate.cmn intrfac.cmn radiate.cmn athomog.mod
+            ochomog.mod atmfft.cmn ocnfft.cmn atnc.cmn ocnc.cmn
+            monnc.cmn monitor.cmn timavge.cmn covar.cmn (complete set)
+    ipbget: parameter.src
+    zeroin: parameter.src atstate.cmn ocstate.cmn intrfac.cmn
+    rbalin: parameter.src atconst.cmn occonst.cmn atstate.cmn
+            ocstate.cmn intrfac.cmn radiate.cmn
+    prsamp: parameter.src atconst.cmn atstate.cmn occonst.cmn
+            ocstate.cmn intrfac.cmn monitor.cmn
+    cfltry: parameter.src atconst.cmn atstate.cmn occonst.cmn
+            ocstate.cmn intrfac.cmn monitor.cmn
+    resave: parameter.src atstate.cmn ocstate.cmn intrfac.cmn
+    memreq: parameter.src atmfft.cmn ocnfft.cmn
+    diffts: parameter.src
+
+ amlsubs.F:
+       aml: parameters.mod atconst.cmn atstate.cmn intrfac.cmn
+            radiate.cmn athomog.mod monitor.cmn
+    amladf: parameters.mod atconst.cmn intrfac.cmn
+
+areasubs.F:
+    areavg: parameter.src atconst.cmn occonst.cmn intrfac.cmn
+    areint:
+
+ atisubs.F:
+    atinvq: parameters.mod atconst.cmn atstate.cmn athomog.mod
+            monitor.cmn
+    hscyat: parameter.src atmfft.cmn
+
+ conhoms.F:
+    constr: parameters.mod atconst.cmn occonst.cmn atstate.cmn
+            ocstate.cmn athomog.mod ochomog.mod monitor.cmn
+    homsol: parameter.src atconst.cmn occonst.cmn athomog.mod
+            ochomog.mod
+
+ covsubs.F:
+    covini: parameter.src covar.cmn
+    covatm: parameter.src atstate.cmn intrfac.cmn covar.cmn
+    covocn: parameter.src ocstate.cmn intrfac.cmn covar.cmn
+    covout: parameter.src covar.cmn
+    tsampl:
+    psampl:
+      dssp:
+
+ diasubs.F:
+    diagno: parameter.src atconst.cmn occonst.cmn atstate.cmn
+            ocstate.cmn intrfac.cmn radiate.cmn monitor.cmn
+    del4bx:
+    del4ch:
+    genint:
+
+  eigmod.f:
+    eigmod: parameter.src
+
+ intsubs.f:
+     xintt:
+     xintp:
+
+ nc_subs.F:
+handle_err:
+ ocnc_init: parameter.src occonst.cmn ocnc.cmn
+ atnc_init: parameter.src atconst.cmn atnc.cmn
+  ocnc_out: parameter.src occonst.cmn ocstate.cmn intrfac.cmn ocnc.cmn
+  atnc_out: parameter.src atconst.cmn atstate.cmn intrfac.cmn atnc.cmn
+monnc_init: parameter.src atconst.cmn occonst.cmn monnc.cmn
+ monnc_out: parameter.src monitor.cmn monnc.cmn
+ resave_nc: parameter.src atconst.cmn occonst.cmn atstate.cmn ocstate.cmn
+            intrfac.cmn
+restart_nc: parameter.src atstate.cmn ocstate.cmn intrfac.cmn
+
+ ocisubs.F:
+    ocinvq: parameter.src ochomog.mod occonst.cmn ocstate.cmn
+    hsbxoc: parameter.src ocnfft.cmn
+    hscyoc: parameter.src ocnfft.cmn
+
+ omlsubs.F:
+       oml: parameters.mod occonst.cmn ocstate.cmn intrfac.cmn
+            radiate.cmn ochomog.mod monitor.cmn
+    omladf: parameters.mod occonst.cmn intrfac.cmn monitor.cmn
+
+ qgasubs.F:
+   qgastep: parameters.mod atconst.cmn atstate.cmn athomog.mod
+    atadif: parameters.mod atconst.cmn
+
+ qgosubs.F:
+   qgostep: parameters.mod ochomog.mod occonst.cmn ocstate.cmn
+    ocadif: parameters.mod occonst.cmn
+
+ radsubs.f:
+    radiat: parameter.src atconst.cmn occonst.cmn intrfac.cmn
+            radiate.cmn
+    trapin:
+
+ tavsubs.F:
+    tavini: parameter.src timavg.cmn
+    tavatm: parameter.src atconst.cmn atstate.cmn intrfac.cmn timavge.cmn
+    tavocn: parameter.src occonst.cmn ocstate.cmn intrfac.cmn timavge.cmn
+    tavout: parameter.src atconst.cmn occonst.cmn timavge.cmn
+
+ topsubs.F:
+    topset: parameter.src netcdf.inc atconst.cmn occonst.cmn
+ topout_nc: parameter.src netcdf.inc atconst.cmn occonst.cmn
+
+ valsubs.F:
+    valids: parameter.src atstate.cmn ocstate.cmn intrfac.cmn
+    scan2D:
+    scan3D:
+
+ vorsubs.F:
+     qcomp: parameter.src
+    merqcy: parameter.src
+    ocqbdy: parameter.src occonst.cmn
+    atqzbd: parameter.src atconst.cmn
+
+ xfosubs.F:
+     xforc: parameters.mod atconst.cmn occonst.cmn atstate.cmn
+            ocstate.cmn intrfac.cmn radiate.cmn athomog.mod monitor.cmn
+    fsprim: parameters.mod atconst.cmn radiate.cmn
+    bilint: parameters.mod atconst.cmn
+
+
+Programming notes:
+------------------
+(1) SGI and Sun compilers (probably wrongly) refuse to allow reduction variables
+    to be declared both as SHARED and REDUCTION in the PARALLEL DO construct,
+    which the standard requires. Other compilers (Portland Group and DEC
+    especially) require such variables to be declared both ways.
+    Solution (workaround): Don't do REDUCTION in PARALLEL DO constructs
+    (which are after all just a syntactic short cut). Instead split the
+    construct into the more basic PARALLEL section enclosing a DO construct.
+    Put the SHARED declaration with the PARALLEL section, and the REDUCTION
+    declaration with the DO header.
+
+(2) Intel compiler problem: if computing diagnostics which are REDUCTION
+    variables (e.g. integrals) going into a common block, the ifc compiler
+    (unlike any other) wants the whole common block to be declared as SHARED.
+    Solution: do the summation in a variable local to the diagnostics routine,
+    and assign the result to the COMMON variable outside the PARALLEL section;
+    this is better programming practice anyway.
+
+(3) The Compaq Fortran Compiler V5.5 sometimes rejects some OpenMP syntax
+    accepted by all other compilers tested, and indeed accepted by the same
+    compiler at other places in the same subroutine. It objects to some
+    declarations of PRIVATE variables accompanying individual DO-loops
+    within an overall parallel section, but will accept the same variables
+    being declared PRIVATE at the start of the PARALLEL section. I prefer
+    to tie the declaration to the loop where it is used (if there is only
+    one), but there's no point if it won't work.
+
+(4) The latest release of the Compaq Fortran Compiler V5.5 (on ANU/SC)
+    rejects some OpenMP declarations of SHARED variables (while inconsistently
+    accepting the same syntax in other loops of the same structure). The
+    objection seems to be to declaring SHARED variables which are in common,
+    and the fix is to declare the entire common block as SHARED, e.g.
+954c954
+< !$OMP&         SHARED  (qa,qam,pa,pam,ast,astm,hmixa,hmixam)  <---original
+---
+> !$OMP&         SHARED  (/atstate/,/intrfac/)     <----- replacement
+    v2.0 of the OpenMP standard certainly gives this as an alternative
+    syntax, but it doesn't seem to be mandatory (Neil S. agrees).
+    Probably worth producing a fixed verion for Andy to use, but I prefer
+    the original form which shows the status of each variable explicitly,
+    rather than having to discover it indirectly via the common block
+    declarations.
+
+(5) The Intel preprocessor adds some line number information to its output,
+    preceded by a #. This can be turned off in the version output to a file,
+    but not (apparently) in the version passed internally to the compiler.
+

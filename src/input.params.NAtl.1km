@@ -1,0 +1,121 @@
+!!
+!! Input parameters for Southern Ocean configuration
+!! -------------------------------------------------
+!! N.B. At most the first 80 columns of this file are significant
+!! All lines with a "!" in column 1 are ignored; there must be
+!! no blank lines until all the parameter values have been read
+!!
+!! Timing parameters
+!! -----------------
+! 0.0027397260D0  !! trun    = Length of run in years   (1 day)
+! 0.0054794521D0  !! trun    = Length of run in years   (2 days)
+! 0.013698630D0   !! trun    = Length of run in years   (5 days)
+ 0.027397260D0   !! trun    = Length of run in years  (10 days)
+! 0.041095890D0   !! trun    = Length of run in years  (15 days)
+! 0.054794521D0   !! trun    = Length of run in years  (20 days)
+! 0.082191781D0   !! trun    = Length of run in years  (30 days)
+! 0.109589041D0   !! trun    = Length of run in years  (40 days)
+! 0.164383562D0   !! trun    = Length of run in years  (60 days)
+! 0.20D0          !! trun    = Length of run in years  (73 days)
+! 0.246575342D0   !! trun    = Length of run in years  (90 days)
+! 0.328767123D0   !! trun    = Length of run in years (120 days)
+! 0.40D0          !! trun    = Length of run in years (146 days)
+! 0.493150685D0   !! trun    = Length of run in years (180 days)
+! 0.60D0          !! trun    = Length of run in years (219 days)
+! 1.00D0          !! trun    = Length of run in years
+! 2.00D0          !! trun    = Length of run in years
+! 4.00D0          !! trun    = Length of run in years
+!  5.00D0         !! trun    = Length of run in years
+! 10.00D0         !! trun    = Length of run in years
+ 180.0D0         !! dta     = Atmos. timestep in seconds
+ 1               !! nstr    = Timestep ratio dto/dta
+!!
+!! Physical parameters
+!! -------------------
+ 1.0D3           !! dxo     = Ocean grid spacing (m)
+ 2.0d0           !! delek   = Ocean bottom Ekman layer thickness (m)
+ 1.3d-3          !! cdat    = Air-Sea momentum drag coefficient (quad)
+ 1.0d0           !! rhoat   = Atmospheric density (kg m^-3)
+ 1.0d3           !! rhooc   = Oceanic density     (kg m^-3)
+ 1.0d3           !! cpat    = Atmos. specific heat capacity (J kg^-1 K^-1)
+ 4.0d3           !! cpoc    = Ocean  specific heat capacity (J kg^-1 K^-1)
+ 1.0d0           !! bccoat  = Mixed BC coefficient for atmos. (nondim.)
+ 0.1d0           !! bccooc  = Mixed BC coefficient for ocean  (nondim.)
+ 1.0d0           !! xcexp   = coupling coefficient x
+ 1.0d0           !! ycexp   = coupling coefficient y
+!!
+!! Data dumping/averaging parameters
+!! ---------------------------------
+ 0.250d0         !! valday  = Validity checking interval (days)
+ 5.00d0          !! odiday  = Ocean  data dump interval  (days)
+ 5.00d0          !! adiday  = Atmos. data dump interval  (days)
+ 1.00d0          !! dgnday  = Diagnostics data dump interval (days)
+ 5.00d0          !! prtday  = Print to std output interval (days)
+ 730.0d0         !! resday  = Restart dump interval  (days) (zero => off)
+ 2               !! nsko    = Subsampling interval for ocean output
+ 1               !! nska    = Subsampling interval for atmos. output
+ 0.25d0          !! dtavat  = Atmos. averaging interval (days) (zero => off)
+ 1.0d0           !! dtavoc  = Ocean  averaging interval (days) (zero => off)
+ 1.0d0           !! dtcovat = Atmos. covar interval (days) (zero => off)
+ 5.0d0           !! dtcovoc = Ocean  covar interval (days) (zero => off)
+!!
+!! Mixed layer parameters
+!! ----------------------
+ 35.0d0          !! xlamda  = Sensible and latent transfer
+ 100.0d0         !! hmoc    = Fixed ocean  mixed layer depth  (m)
+ 200.0d0         !! st2d    = sst grad-sqd diffusivity (m^2 s^-1)
+ 5.0d+7          !! st4d    = sst grad-4th diffusivity (m^4 s^-1)
+ 1000.0d0        !! hmat    = Fixed atmos. mixed layer depth  (m)
+ 100.0d0         !! hmamin  = Min. allowed atmos. m. l. depth (m)
+ 2.0d5           !! ahmd    = atmos. hmix diffusivity  (m^2 s^-1)
+ 2.5d4           !! at2d    = ast grad-sqd diffusivity (m^2 s^-1)
+ 2.0d14          !! at4d    = ast grad-4th diffusivity (m^4 s^-1)
+ 0.15d0          !! hmadmp  = Atmos. m.l. damping constant
+!!
+!! Radiation parameters
+!! --------------------
+ -210.0d0        !! fsbar   = Mean radiative forcing  (W m^-2)
+ 80.0d0          !! fspamp  = Radiation perturbation magnitude (W m^-2) (i.e. peak-trough variation, always +ve)
+ 2.0d2           !! zm      = Optical depth in a.m.l.  (m)
+ 2.0d4  2.0d4  3.0d4        !! zopt(k) = Optical depth in layer k (m)
+ 1.0d-2          !! gamma   = Adiabatic lapse rate (K m^-1)
+!!
+!! Oceanic QG layer parameters
+!! ---------------------------
+  0.0d0    0.0d0    0.0d0   !! ah2oc(k)  = Del-sqd coefft for ocean layer k (m^2 s^-1)
+ 5.0d+7   5.0d+7   5.0d+7   !! ah4oc(k)  = Del-4th coefft for ocean layer k (m^4 s^-1)
+ 287.0d0  282.0d0  276.0d0  !! tabsoc(k) = Potential temp. of ocean layer k (K)
+ 350.0d0  750.0d0 2900.0d0  !! hoc(k)    = Thickness of ocean layer k (m)
+!! 0.0500d0  0.0250d0         !! gpoc(i)   = Reduced gravity for ocean interface i (m s^-2)
+!! 0.0400d0  0.0200d0         !! gpoc(i)   = Reduced gravity for ocean interface i (m s^-2)
+!! 0.0350d0  0.0175d0         !! gpoc(i)   = Reduced gravity for ocean interface i (m s^-2)
+!! 0.0300d0  0.0150d0         !! gpoc(i)   = Reduced gravity for ocean interface i (m s^-2)
+!! 0.0250d0  0.0125d0         !! gpoc(i)   = Reduced gravity for ocean interface i (m s^-2)
+!! 0.0200d0  0.0100d0         !! gpoc(i)   = Reduced gravity for ocean interface i (m s^-2)
+ 0.0150d0  0.0075d0         !! gpoc(i)   = Reduced gravity for ocean interface i (m s^-2)
+!!
+!! Atmospheric QG layer parameters
+!! -------------------------------
+ 1.0d+14  1.0d+14  1.0d+14  !! ah4at(k)  = Del-4th coefft for atmos. layer k (m^4 s^-1)
+ 330.0d0  340.0d0  350.0d0  !! tabsat(k) = Temperature for atmos. layer k (K)
+ 2000.d0  3000.d0  4000.d0  !! hat(k)    = Thickness of atmos. layer k (m)
+ 1.2d0     0.4d0            !! gpat(i)   = Reduced gravity for atmos. interface i (m s^-2)
+!!
+!! Configuration/control parameters
+!! --------------------------------
+!! Initial state. Options are: zero, rbal or the name of a restart file
+rbal
+!./lastday.nc
+!! Ocean  topography. Options are: flat, define or the name of a file
+flat
+!! Atmos. topography. Options are: flat, define or the name of a file
+define
+ 1 1 1 1 1 1 0              !! outfloc = output flags for ocean
+ 1 1 1 1 1 1 1              !! outflat = output flags for atmos.
+                            !! outfloc/at(i): An integer vector containing a set
+                            !! of flags specifying which output fields are required.
+                            !! 1 implies variable is output to netcdf
+                            !! file, 0 means not. Variables (in order) are:
+                            !! ml temp, p, q, Ekman vel. at T pts,
+                            !! interface height, windstress.
+                            !! mixed layer thickness

@@ -1,0 +1,96 @@
+#
+# Q-GCM system-specific macro v1.5.0
+# ==================================
+
+# Compile/link options which you will need to set:
+# ------------------------------------------------
+# FC = Command which invokes your Fortran 90 compiler (e.g. f90, ifort, gfortran, ...)
+# FFLAGS = List of flags for your Fortran 90 compiler (optimization/debugging/profiling)
+# DEBUGS = List of strict debugging flags for your Fortran compiler (for testing)
+# TPFLAGS = List of flags for building the simplified test programs
+#
+# LAPACK = Compiler flag for picking up system copy of LAPACK & BLAS
+# (alternatively set LAPSRC and LAPOBJ to use supplied source code version)
+#
+# netCDF information; if NCOPT in the calling Makefile is unset,
+# all the following macros should also be left unset:
+# NCDIR = Top directory of netCDF installation
+# NCLIB = Location from which to link netCDF library
+# IDIR = Directory containing the netCDF include file netcdf.inc
+# NCDINC = Absolute filename of netcdf.inc file to be included
+# NCLINK = Linker flags for picking up the netCDF library
+
+# Sun Opteron-based Linux systems, GCC gfortran compiler:
+# =======================================================
+# Operating system: Linux nonsuch 3.0.74-0.6.6-default #1 SMP Thu Apr 25
+#    (uname -a)     12:25:38 UTC 2013 (395d734) x86_64 x86_64 x86_64 GNU/Linux
+# cat /etc/SuSE-release: SUSE Linux Enterprise Desktop 11 (x86_64)
+#                        VERSION = 11 PATCHLEVEL = 2
+# gfortran --version: GNU Fortran (GCC) 4.5.3
+# gfortran has its uses as a very pedantic debugging compiler
+# Need linelength = 80 for getting LAPACK/BLAS from lasubs.f,
+# and for some inline comments in parameters_data.F, otherwise
+# default linelength = 72 would suffice for the rest of the code
+#FC = gfortran -std=f95 -ffixed-line-length-80
+FC = gfortran -ffixed-line-length-80 -fimplicit-none -std=legacy
+# (may also want to try -std=legacy)
+# Add -g for profiling
+# --------------------
+# Without OpenMP
+#FFLAGS = -O3 -mtune=native -pedantic -Wunused -Waliasing \
+#-Wuninitialized -Wsurprising -ffpe-trap=invalid,zero,overflow -g
+# With OpenMP
+FFLAGS = -O3 -mtune=native -pedantic -Wunused -Wuninitialized \
+-Waliasing -Wsurprising -ffpe-trap=invalid,zero,overflow -fbacktrace -g -fopenmp
+DEBUGS = -O3 -mtune=native -pedantic -Wunused \
+-Waliasing -Wuninitialized -Wsurprising -fbounds-check -fbacktrace -g
+# (may also want to try -ffpe-trap=invalid,zero,overflow, -msse4.2)
+# Cannot get -static to work, produces a Segmentation fault.
+#FFLAGS = ${DEBUGS}
+# Compiler flag(s) for test programs (usually simpler)
+TPFLAGS =
+#TPFLAGS = ${FFLAGS}
+#TPFLAGS = ${DEBUGS}
+
+# LAPACK/BLAS:
+# ------------
+#LAPACK =
+# Alternative provision of LAPACK/BLAS from the supplied source code
+# Set either LAPACK, or both of LAPSRC and LAPOBJ, but not all three
+LAPSRC = lasubs.f
+LAPOBJ = lasubs.o
+
+# NetCDF:
+# -------
+# Passing NCIDIR to the makefile and invoking as -I${NCIDIR} there doesn't
+# work; the invocation macro has to be complete or null. Hence use NCLINC.
+
+# My version of netCDF3 for GCC4.3.1, with unseparated Fortran library
+#NCBASE = /noc/users/jeff/packages/netcdf/netcdf-3.6.3
+#NCIDIR = ${NCBASE}/include
+# Derived symbols passed to Makefile:
+#NCDINC = ${NCIDIR}/netcdf.inc
+#NCINCL = -I${NCIDIR}
+# Static library link
+#NCLINK = -L${NCBASE}/x86_64/gcc4.3.1/lib -lnetcdf
+
+# My version of netCDF4 for GCC4.5.3, with separated Fortran library
+# Also of course needs a corresponding HDF5 library
+NCBASE = /noc/users/jeff/packages/netcdf4/netcdf-4.1.3/x86_64/gcc4.5.3
+H5BASE = /noc/users/jeff/packages/hdf5/hdf5-1.8.9/x86_64/gcc4.5.3
+NCIDIR = ${NCBASE}/include
+# Derived symbols passed to Makefile:
+NCDINC = ${NCIDIR}/netcdf.inc
+NCINCL = -I${NCIDIR}
+# Library link (seems to be defaulting to shared)
+#NCLINK = -L${NCBASE}/lib -lnetcdff -lnetcdf -L${H5BASE}/lib -lhdf5_hl -lhdf5 -lz -lm
+NCLINK = -L${NCBASE}/lib -lnetcdff -lnetcdf -L${H5BASE}/lib -lhdf5_hl -lhdf5hl_fortran -lhdf5 -lhdf5_fortran -lz -lm
+# Note that if using shared libraries, need before running the program to do:
+# setenv H5BASE /noc/users/jeff/packages/hdf5/hdf5-1.8.9/x86_64/gcc4.5.3
+# setenv LD_LIBRARY_PATH "${H5BASE}/lib:${LD_LIBRARY_PATH}"
+# (1) Not sure why this isn't apparently necessary for the netCDF4 library
+# (2) Really need to get static linking of libraries sorted out under gfortran
+# (3) Does the above imply that HDF5 isn't statically linked into the netCDF4?
+# (4) Experience using this library with Luke's GCC program suggests
+#     the problem is confined to gfortran or the Fortran libraries. Why?
+

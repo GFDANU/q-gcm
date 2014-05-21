@@ -1,0 +1,108 @@
+
+Notes on using MKL from the current make.macro, which seems to work:
+
+# LAPACK/BLAS:
+# ------------
+# Access to LAPACK/BLAS via the Intel MKL library:
+# For workstations, architecture = Intel 64 -> use /lib/em64t
+# For Q-GCM, MKL function domains required = BLAS, LAPACK
+# MKL now has layered model concept: need to specify Interface, Threading,
+#                                    Computation and Run-time library
+# version for OpenMP parallelism:
+# To ensure efficiency and safe parallelism, we want
+# static linking of a thread-safe version of the library
+# See http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor/
+# See also http://software.intel.com/en-us/articles/avoiding-relocation-
+# errors-when-building-applications-with-large-global-or-static-data-on-intel64/
+# for a discussion of trying to add -mcmodel=medium
+MKLDIR = /nerc/packages/intel_compilers/intel_fc_11.1.072/mkl
+MKLPATH = ${MKLDIR}/lib/em64t
+MKLINCLUDE = ${MKLDIR}/include
+LAPACK = -L${MKLPATH} -I${MKLINCLUDE} -Wl,--start-group ${MKLPATH}/libmkl_intel_lp64.a \
+${MKLPATH}/libmkl_sequential.a ${MKLPATH}/libmkl_core.a -Wl,--end-group -lpthread
+# version for single-thread testing:
+# For the sequential version, no RTL should be needed, but the
+# POSIX thread library (pthread) will be needed for thread-safety
+
+Contents of http://software.intel.com/en-us/articles/avoiding-relocation-
+errors-when-building-applications-with-large-global-or-static-data-on-intel64/
+
+Avoiding Relocation Errors when Building Applications with Large
+Global or Static Data on Intel64 Linux
+
+January 25, 2010 11:00 PM PST
+
+Problem :  Relocation overflow errors at link time, with messages
+such as "relocation truncated to fit"
+
+
+Environment :  Linux* for Intel64;  the Intel C/C++ and Fortran
+Compilers; applications with >2GB of global or static data.
+
+Root Cause : The default memory model for the Intel Compiler for Intel64
+Linux* is small (-mcmodel=small). This restricts both code and global or
+static data to the first 2 GB of address space and allows all accesses to
+be made with instruction pointer (IP)-relative addressing. If an
+application containing a total of more than 2 GB of global or static data
+is built with default options, the IP-relative addressing may result in a
+relocation overflow error at link time.
+
+
+Resolution : Such applications should be compiled with the medium memory
+model (-mcmodel=medium), which ensures that data accesses use absolute
+addressing that can accommodate large addresses.
+
+Applications built with -mcmodel=medium should normally be linked against
+shared libraries. Shared libraries are built with position independent code
+(-fpic), do not normally themselves contain large, static data and are
+compatible with both small and medium memory models.
+
+If an application built with -mcmodel=medium is linked against a static
+library, that library should also be built with the medium memory model.
+Such a library may also be linked against an application built with the
+small memory model, provided that the library does not itself contain
+large static or global data. There may be a slight performance advantage
+in linking an application built with the small memory model to a static
+library built in the same way, but any performance benefit is usually
+rather small.
+
+The static libraries within the Intel compiler runtime library are built
+with the default small memory model. Therefore, applications built
+with -mcmodel=medium should not link against these, but should use
+-shared-intel to link against the shared runtime libraries, which are
+built with -fpic and are compatible with the medium memory model.
+
+The same is true of many other libraries. For applications compiled with
+the medium memory model, it is recommended to link against the shared
+versions of other libraries such as IMSL or Intel MPI.
+
+The Intel Math Kernel Library (MKL) is an exception. The static version
+of MKL has been built to be compatible with both small and medium memory
+models. Therefore, applications built with -mcmodel=medium may link
+against either the static or the shared library version of MKL.
+
+
+This article applies only to applications with more than 2 GB of global
+or statically allocated data. Applications where large data are allocated
+dynamically at runtime, e.g. with malloc() in C, with new() in C++ or
+with ALLOCATE in Fortran, do not need to be built with the medium memory
+model.
+
+
+Advice from http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor/
+for the Q-GCM case is:
+
+
+Use this link line:
+$(MKLROOT)/lib/em64t/libmkl_solver_lp64_sequential.a -Wl,--start-group
+$(MKLROOT)/lib/em64t/libmkl_intel_lp64.a $(MKLROOT)/lib/em64t/libmkl_sequential.a
+$(MKLROOT)/lib/em64t/libmkl_core.a -Wl,--end-group -lpthread -lm
+
+Compiler options:
+ -I$(MKLROOT)/include
+
+Find more information on linking in the Intel MKL User's Guide
+
+The above suggestion is exactly what we are doing (except that we don't seem
+to need the -lm, and would probably recognise the lack of it when necessary).
+

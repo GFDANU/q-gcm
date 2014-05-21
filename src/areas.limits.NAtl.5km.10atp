@@ -1,0 +1,14 @@
+   5                                                       !!nareoc
+      0.0d3    400.0d3      0.0d3    400.0d3    200.0d3    !!xlooc (m)
+    400.0d3    800.0d3    400.0d3    800.0d3    600.0d3    !!xhioc (m)
+      0.0d3      0.0d3    400.0d3    400.0d3    200.0d3    !!ylooc (m)
+    400.0d3    400.0d3    800.0d3    800.0d3    600.0d3    !!yhioc (m)
+        oc1        oc2        oc3        oc4        oc5    !!areaoc
+   5                                                       !!nareat
+      0.0d3   7680.0d3  15360.0d3  23040.0d3  12960.0d3    !!xloat (m)
+   7680.0d3  15360.0d3  23040.0d3  30720.0d3  17760.0d3    !!xhiat (m)
+   1440.0d3   1440.0d3   1440.0d3   1440.0d3   1440.0d3    !!yloat (m)
+   6240.0d3   6240.0d3   6240.0d3   6240.0d3   6240.0d3    !!yhiat (m)
+        at1        at2        at3        at4        at5    !!areaat
+Specify NAREOC ocean subareas (coords rel. to ocean basin)
+Specify NAREAT atmosphere subareas (coords rel. to atmosphere)

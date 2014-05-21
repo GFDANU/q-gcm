@@ -1,0 +1,71 @@
+#
+# Q-GCM system-specific macro v1.5.0
+# ==================================
+
+# Compile/link options which you will need to set:
+# ------------------------------------------------
+# FC = Command which invokes your Fortran 90 compiler (e.g. f90, ifort, gfortran, ...)
+# FFLAGS = List of flags for your Fortran 90 compiler (optimization/debugging/profiling)
+# DEBUGS = List of strict debugging flags for your Fortran compiler (for testing)
+# TPFLAGS = List of flags for building the simplified test programs
+#
+# LAPACK = Compiler flag for picking up system copy of LAPACK & BLAS
+# (alternatively set LAPSRC and LAPOBJ to use supplied source code version)
+#
+# netCDF information; if NCOPT in the calling Makefile is unset,
+# all the following macros should also be left unset:
+# NCDIR = Top directory of netCDF installation
+# NCLIB = Location from which to link netCDF library
+# IDIR = Directory containing the netCDF include file netcdf.inc
+# NCDINC = Absolute filename of netcdf.inc file to be included
+# NCLINK = Linker flags for picking up the netCDF library
+
+# Sun Opteron-based Linux systems, GCC gfortran compiler:
+# =======================================================
+# Operating system: Linux nonsuch 2.6.16.60-0.25-smp #1 SMP Sat Jul 12
+#    (uname -a)     10:50:17 UTC 2008 x86_64 x86_64 x86_64 GNU/Linux
+# cat /etc/SuSE-release: SUSE Linux Enterprise Desktop 10 (x86_64)
+#                        VERSION = 10 PATCHLEVEL = 2
+# gfortran --version: GNU Fortran (GCC) 4.3.1
+# gfortran has its uses as a very pedantic debugging compiler
+# Need linelength = 80 for getting LAPACK/BLAS from lasubs.f,
+# and for some inline comments in parameters_data.F, otherwise
+# default linelength = 72 would suffice for the rest of the code
+FC = gfortran -std=f95 -ffixed-line-length-80
+# Add -g for profiling
+# --------------------
+# Without OpenMP
+#FFLAGS = -O3 -mtune=native -pedantic -Wunused \
+#-Waliasing -Wuninitialized -Wsurprising -g
+# With OpenMP
+FFLAGS = -O3 -mtune=native -pedantic -Wunused \
+-Waliasing -Wuninitialized -Wsurprising -g -fopenmp
+DEBUGS = -O3 -mtune=native -pedantic -Wunused \
+-Waliasing -Wuninitialized -Wsurprising -fbounds-check -g
+#FFLAGS = ${DEBUGS}
+# Compiler flag(s) for test programs (usually simpler)
+TPFLAGS =
+#TPFLAGS = ${FFLAGS}
+#TPFLAGS = ${DEBUGS}
+
+# LAPACK/BLAS:
+# ------------
+#LAPACK =
+# Alternative provision of LAPACK/BLAS from the supplied source code
+# Set either LAPACK, or both of LAPSRC and LAPOBJ, but not all three
+LAPSRC = lasubs.f
+LAPOBJ = lasubs.o
+
+# NetCDF:
+# -------
+# Passing NCIDIR to the makefile and invoking as -I${NCIDIR} there doesn't
+# work; the invocation macro has to be complete or null. Hence use NCLINC.
+# My version of netCDF for GCC4, with unseparated Fortran library
+NCBASE = /noc/users/jeff/packages/netcdf/netcdf-3.6.3
+NCIDIR = ${NCBASE}/include
+# Derived symbols passed to Makefile:
+NCDINC = ${NCIDIR}/netcdf.inc
+NCINCL = -I${NCIDIR}
+# Static library link
+NCLINK = -L${NCBASE}/x86_64/gcc4.3.1/lib -lnetcdf
+

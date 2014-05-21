@@ -1,0 +1,108 @@
+#
+# Q-GCM system-specific macro v1.5.0
+# ==================================
+
+# Compile/link options which you will need to set:
+# ------------------------------------------------
+# FC = Command which invokes your Fortran 90 compiler (e.g. f90, ifort, gfortran, ...)
+# FFLAGS = List of flags for your Fortran 90 compiler (optimization/debugging/profiling)
+# DEBUGS = List of strict debugging flags for your Fortran compiler (for testing)
+# TPFLAGS = List of flags for building the simplified test programs
+#
+# LAPACK = Compiler flag for picking up system copy of LAPACK & BLAS
+# (alternatively set LAPSRC and LAPOBJ to use supplied source code version)
+#
+# netCDF information; if NCOPT in make.config is unset,
+# all the following macros should also be left unset:
+# NCBASE = Top directory of netCDF installation
+# NCIDIR = Directory containing the netCDF include file netcdf.inc
+# NCDINC = Absolute filename of netcdf.inc file to be included
+# NCINCL = How the compiler should access the include directory
+# NCLINK = Location and linker flags for picking up the netCDF library
+
+# x86_64 architecture Linux systems, Intel compiler suite:
+# ========================================================
+# Highly optimised version for newer Xeon chips, and v11.1 compiler
+# Operating system: Linux mnemosyne 2.6.32.12-0.7-default #1 SMP 2010-05-20
+#    (uname -a)     11:14:20 +0200 x86_64 x86_64 x86_64 GNU/Linux
+# cat /etc/SuSE-release: SUSE Linux Enterprise Server 11 (x86_64)
+#                        VERSION = 11 PATCHLEVEL = 1
+# ifort -V: Intel(R) Fortran Intel(R) 64 Compiler Professional
+#           for applications running on Intel(R) 64, Version 11.1
+#           Build 20100414 Package ID: l_cprof_p_11.1.072
+# Need linelength = 80 for getting LAPACK/BLAS from lasubs.f,
+# and for some inline comments in parameters_data.F, otherwise
+# default linelength = 72 would suffice for the rest of the code
+FC = ifort -80 -fpp -std90 -xSSE4.2
+# Moving to -std95 produces an excessive number of warnings
+#
+# For profiling work, change from -ipo to -ip (investigate),
+# and set extra profiling compiler flags. Put these first.
+# -p    compile and link for function profiling with UNIX gprof tool
+#       On IA32 and Intel(r)64, -pg is also valid
+#PROFIL = -p -g
+#
+# Optimisation reports
+# -opt-report 3 is incredibly verbose; -vec-report3 probably sufficient
+#OPTREP = -vec-report3
+#FFLAGS = -O3 -ip -mp1 -fpe0 -align -automatic
+#FFLAGS = -O3 -ip -mp1 -fpe0 -align -automatic -static
+#FFLAGS = -O3 -ip -mp1 -fpe0 -align -automatic -static -warn
+#FFLAGS = -O3 -ipo -mp1 -fpe0 -align -automatic -static -openmp -warn all
+#FFLAGS = -O3 -ipo -mp1 -fpe0 -align -automatic -static -openmp -warn all,nointerfaces
+#FFLAGS = -O3 -ipo -mp1 -fpe0 -align -automatic -static -warn all,nointerfaces
+DEBUGS = -check all -ftrapuv -implicitnone -warn all,nointerfaces -mp1 -automatic -fpe0 -align -static -g -traceback
+FFLAGS = ${PROFIL} ${OPTREP} -O3 -ip -mp1 -fpe0 -align -automatic -static -openmp -warn all,nointerfaces
+#FFLAGS = ${PROFIL} ${OPTREP} -O3 -ip -mp1 -fpe0 -align -automatic -static -warn all,nointerfaces
+#FFLAGS = ${DEBUGS}
+#FFLAGS = ${DEBUGS} -openmp
+# Compiler flag(s) for test programs (usually simpler)
+TPFLAGS = -static
+#TPFLAGS = ${FFLAGS}
+#TPFLAGS = ${DEBUGS}
+
+# LAPACK/BLAS:
+# ------------
+# Access to LAPACK/BLAS via the Intel MKL library:
+# For workstations, architecture = Intel 64 -> use /lib/em64t
+# For Q-GCM, MKL function domains required = BLAS, LAPACK
+# MKL now has layered model concept: need to specify Interface, Threading,
+#                                    Computation and Run-time library
+# version for OpenMP parallelism:
+# To ensure efficiency and safe parallelism, we want
+# static linking of a thread-safe version of the library
+# See http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor/
+# See also http://software.intel.com/en-us/articles/avoiding-relocation-
+# errors-when-building-applications-with-large-global-or-static-data-on-intel64/
+# for a discussion of trying to add -mcmodel=medium
+MKLDIR = /nerc/packages/intel_compilers/intel_fc_11.1.072/mkl
+MKLPATH = ${MKLDIR}/lib/em64t
+MKLINCLUDE = ${MKLDIR}/include
+LAPACK = -L${MKLPATH} -I${MKLINCLUDE} -Wl,--start-group ${MKLPATH}/libmkl_intel_lp64.a ${MKLPATH}/libmkl_sequential.a ${MKLPATH}/libmkl_core.a -Wl,--end-group -lpthread
+# version for single-thread testing:
+# For the sequential version, no RTL should be needed, but the
+# POSIX thread library (pthread) will be needed for thread-safety
+# Alternative workstation access to LAPACK/BLAS using the NAG library
+# LAPACK = -L${NAGDIR} -lnag_nag
+# Alternative provision of LAPACK/BLAS from the supplied source code
+# Set either LAPACK, or both of LAPSRC and LAPOBJ, but not all three
+#LAPSRC = lasubs.f
+#LAPOBJ = lasubs.o
+
+# NetCDF:
+# -------
+# Passing NCIDIR to the makefile and invoking as -I${NCIDIR} there doesn't
+# work; the invocation macro has to be complete or null. Hence use NCLINC.
+NCBASE = /noc/users/jeff/packages/netcdf/netcdf-3.6.3/xSSE4.2/intel11.1
+NCIDIR = ${NCBASE}/include
+# Derived symbols passed to Makefile:
+NCDINC = ${NCIDIR}/netcdf.inc
+NCINCL = -I${NCIDIR}
+# Static library link (preferred when using default -mcmodel=small)
+NCLINK = -L${NCBASE}/lib -lnetcdf
+# Shared library link (required when using -mcmodel=medium)
+#NCLINK = -L${NCBASE}/lib -Bdynamic -lnetcdff -lnetcdf
+# Note that if using shared libraries, need before running the program to do:
+# setenv NCBASE /noc/users/jeff/packages/netcdf/netcdf-3.6.3/xSSE4.2/intel11.1
+# setenv LD_LIBRARY_PATH "${NCBASE}/lib:${LD_LIBRARY_PATH}"
+
