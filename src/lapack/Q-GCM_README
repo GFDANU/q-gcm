@@ -1,0 +1,43 @@
+
+Please note that this directory /lapack and its subdirectory
+/blas contain only the (very small) subset of the LAPACK and
+BLAS libraries required to run Q-GCM. They were extracted from
+v3.2.1 of LAPACK, dated 17th April 2009, which is still current
+at the time of writing (5th March 2010).
+
+The recommended source of source code for LAPACK is Netlib:
+http://www.netlib.org/lapack/
+
+Note that LAPACK-3.2 now requires a FORTRAN 90 compiler.
+(Do not try to compile with g77 or other 77 compilers.)
+
+There is a useful introduction to LAPACK at
+http://en.wikipedia.org/wiki/LAPACK
+
+If your system contains a library of highly optimised
+mathematical software (e.g. the NAG library, or MKL,
+Intel's Math Kernel Library, or other equivalents),
+we recommend that you link against such a library to
+provide LAPACK and BLAS functionality to Q-GCM; that
+should give better performance than compiling LAPACK
+and BLAS from the source code provided here.
+
+Please read the README file in this directory (which came
+with the LAPACK distribution) for a host of useful information
+and advice, but note that it refers to the full distribution,
+not this minimal redistribution which suffices for Q-GCM.
+
+LAPACK is distributed under the BSD 3-clause license
+("New BSD License"), which allows unlimited redistribution
+for any purpose as long as its copyright notices and the
+license's disclaimers of warranty are maintained. See the
+file LICENSE in this directory for the relevant copyright
+notices and disclaimer. This file was copied directly from
+the LAPACK distribution.
+
+According to http://en.wikipedia.org/wiki/BSD_licenses
+this variant of the BSD license has been verified as a
+GPL-compatible free software license by the Free Software
+Foundation, and has been vetted as an open source license
+by the Open Source Initiative.
+
