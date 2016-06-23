@@ -1971,11 +1971,13 @@ c***********************************************************************
 #  endif /* not atmos_only */
 
 !! Define the za dimension
+#  ifndef ocean_only
       ncstat = nf_def_dim(monncid, 'za', nla, ladim)
       if ( ncstat.ne.NF_NOERR ) call handle_err (ncstat, subnam)
 !! Define the zam dimension (with length nla-1)
       ncstat = nf_def_dim(monncid, 'zam', nla-1, lamdim)
       if ( ncstat.ne.NF_NOERR ) call handle_err (ncstat, subnam)
+#  endif /* not ocean_only */
 
 !! Define a one-dimensional variable called 'time' which
 !! stores time data in years
