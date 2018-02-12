@@ -2700,7 +2700,7 @@ c***********************************************************************
       ncstat = nf_put_att_text(monncid, ugminoc_id, 'long_name',
      &            28, 'Minimum u in ocean Q-G layer')
       if ( ncstat.ne.NF_NOERR ) call handle_err (ncstat, subnam)
-      edims(1) = ladim
+      edims(1) = lodim
       edims(2) = timedim
       ncstat = nf_def_var(monncid,'ugmaxoc',NF_FLOAT,2,edims,ugmaxoc_id)
       if ( ncstat.ne.NF_NOERR ) call handle_err (ncstat, subnam)
@@ -2720,7 +2720,7 @@ c***********************************************************************
       ncstat = nf_put_att_text(monncid, vgminoc_id, 'long_name',
      &            28, 'Minimum v in ocean Q-G layer')
       if ( ncstat.ne.NF_NOERR ) call handle_err (ncstat, subnam)
-      edims(1) = ladim
+      edims(1) = lodim
       edims(2) = timedim
       ncstat = nf_def_var(monncid,'vgmaxoc',NF_FLOAT,2,edims,vgmaxoc_id)
       if ( ncstat.ne.NF_NOERR ) call handle_err (ncstat, subnam)
