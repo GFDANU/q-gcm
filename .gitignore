@@ -1,0 +1,7 @@
+examples/double_gyre_ocean_only/avges.nc
+/src/q-gcm
+q-gcm
+/examples/double_gyre_ocean_only/outdata/*
+/src/make.config
+/src/make.macro
+/src/parameters_data.F
