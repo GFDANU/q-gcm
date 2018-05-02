@@ -5,3 +5,6 @@ q-gcm
 /src/make.config
 /src/make.macro
 /src/parameters_data.F
+*.o
+*.mod
+TAGS
