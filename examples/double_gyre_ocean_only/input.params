@@ -32,7 +32,7 @@
 !!
 !! Physical parameters
 !! -------------------
- 5.0D3           !! dxo     = Ocean grid spacing (m)
+ 10.0D3           !! dxo     = Ocean grid spacing (m)
  2.0d0           !! delek   = Ocean bottom Ekman layer thickness (m)
  1.3d-3          !! cdat    = Air-Sea momentum drag coefficient (quad)
  1.0d0           !! rhoat   = Atmospheric density (kg m^-3)

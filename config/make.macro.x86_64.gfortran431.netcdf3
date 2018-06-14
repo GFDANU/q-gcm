@@ -38,10 +38,10 @@ FC = gfortran -std=f95 -ffixed-line-length-80
 #FFLAGS = -O3 -mtune=native -pedantic -Wunused \
 #-Waliasing -Wuninitialized -Wsurprising -g
 # With OpenMP
-FFLAGS = -O3 -mtune=native -pedantic -Wunused \
--Waliasing -Wuninitialized -Wsurprising -g -fopenmp
-DEBUGS = -O3 -mtune=native -pedantic -Wunused \
--Waliasing -Wuninitialized -Wsurprising -fbounds-check -g
+FFLAGS = -O3 #-mtune=native -pedantic -Wunused \
+#-Waliasing -Wuninitialized -Wsurprising -g -fopenmp
+DEBUGS = -O3 #-mtune=native -pedantic -Wunused \
+#-Waliasing -Wuninitialized -Wsurprising -fbounds-check -g
 #FFLAGS = ${DEBUGS}
 # Compiler flag(s) for test programs (usually simpler)
 TPFLAGS =
@@ -61,11 +61,11 @@ LAPOBJ = lasubs.o
 # Passing NCIDIR to the makefile and invoking as -I${NCIDIR} there doesn't
 # work; the invocation macro has to be complete or null. Hence use NCLINC.
 # My version of netCDF for GCC4, with unseparated Fortran library
-NCBASE = /noc/users/jeff/packages/netcdf/netcdf-3.6.3
+NCBASE = /usr
 NCIDIR = ${NCBASE}/include
 # Derived symbols passed to Makefile:
 NCDINC = ${NCIDIR}/netcdf.inc
 NCINCL = -I${NCIDIR}
 # Static library link
-NCLINK = -L${NCBASE}/x86_64/gcc4.3.1/lib -lnetcdf
+NCLINK = -L${NCBASE}/lib -lnetcdff -lnetcdf
 

@@ -39,16 +39,10 @@ c
 
 *     User settable grid parameters:
       integer :: nxta,nyta,nla,nxaooc,nyaooc,ndxr,nlo
-*     Atmosphere
-      PARAMETER ( nxta =  384, nyta =  96, nla = 3 )  !! 80 km atmosphere
-!!    PARAMETER ( nxta =  512, nyta = 128, nla = 3 )  !! 60 km atmosphere
-!!    PARAMETER ( nxta =  768, nyta = 192, nla = 3 )  !! 40 km atmosphere
-!!    PARAMETER ( nxta = 1536, nyta = 384, nla = 3 )  !! 20 km atmosphere
+*     Atmosphere (not used for ocean only)
+      PARAMETER ( nxta =  384, nyta =  480, nla = 3 )  !! 80 km atmosphere
 *     Ocean
-      PARAMETER ( nxaooc =  60, nyaooc =  60, ndxr = 16, nlo = 3 )  !! 80 km atm.
-!!    PARAMETER ( nxaooc =  80, nyaooc =  80, ndxr = 12, nlo = 3 )  !! 60 km atm.
-!!    PARAMETER ( nxaooc = 120, nyaooc = 120, ndxr =  8, nlo = 3 )  !! 40 km atm.
-!!    PARAMETER ( nxaooc = 240, nyaooc = 240, ndxr =  4, nlo = 3 )  !! 20 km atm.
+      PARAMETER ( nxaooc =  384, nyaooc =  480, ndxr = 1, nlo = 3 )  !! 10 km atm.
 
 *     nxta, nyta are the numbers of atmospheric gridcells W/E and N/S.
 *     nxaooc, nyaooc are the numbers of atmospheric gridcells over
